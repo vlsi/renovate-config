@@ -1104,6 +1104,34 @@ function assertNodeImageMajors(config) {
   );
 }
 
+// jq runs in a build stage of the Dockerfile, which the PR checks build, so its majors automerge there and only there.
+function assertJqImageMajors(config) {
+  const automerges = (packageName, manager = 'dockerfile', datasource = 'docker') =>
+    applyPackageRules(
+      { manager, datasource, packageName, updateType: 'major', currentValue: '1.8.2', newValue: '2.0.0' },
+      config.packageRules
+    ).automerge === true;
+  assert.deepEqual(
+    {
+      'ghcr.io/jqlang/jq 1.8.2 -> 2.0.0': automerges('ghcr.io/jqlang/jq'),
+      'ghcr.io/jqlang/jq 1.8.2 -> 2.0.0 in docker-compose': automerges('ghcr.io/jqlang/jq', 'docker-compose'),
+      'nginx 1.8.2 -> 2.0.0': automerges('nginx'),
+      'ghcr.io/jqlang/jq 1.8.2 -> 2.0.0 from github-releases': automerges(
+        'ghcr.io/jqlang/jq',
+        'dockerfile',
+        'github-releases'
+      ),
+    },
+    {
+      'ghcr.io/jqlang/jq 1.8.2 -> 2.0.0': true,
+      'ghcr.io/jqlang/jq 1.8.2 -> 2.0.0 in docker-compose': false,
+      'nginx 1.8.2 -> 2.0.0': false,
+      'ghcr.io/jqlang/jq 1.8.2 -> 2.0.0 from github-releases': false,
+    },
+    'A major of the ghcr.io/jqlang/jq image must automerge only in a Dockerfile; other images, files, and datasources must wait for review'
+  );
+}
+
 // Renovate automerges a grouped branch only when every update in it automerges (generateBranchConfig), so a major of
 // a GitHub-published action has to stay out of the group that holds other third-party majors.
 function assertGitHubPublishedActionMajors(orgInherited, githubActions, automerge) {
@@ -1732,6 +1760,7 @@ assertGraylogPlugins(configs['graylog-plugins']);
 assertNoAutomerge(configs);
 assertAutomergePolicy(automerge);
 assertNodeImageMajors(automerge);
+assertJqImageMajors(automerge);
 assertGitHubPublishedActionMajors(orgInherited, configs['github-actions'], automerge);
 assertPrBodyKeepsAutomergeStatus(orgInherited);
 

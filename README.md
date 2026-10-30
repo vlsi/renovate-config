@@ -190,7 +190,8 @@ a team-specific preset:
   It also merges major updates of the actions GitHub publishes under `actions/*` and `github/*`: a PR-triggered
   workflow runs every action it uses, so a green PR has run the new major, and these majors are mostly runtime moves
   such as a Node.js bump. It merges major updates of the official `node` image in a Dockerfile too, when the new tag
-  is an even-numbered release, the kind that becomes LTS. Majors of every other dependency wait for review.
+  is an even-numbered release, the kind that becomes LTS, and major updates of the `ghcr.io/jqlang/jq` image in a
+  Dockerfile. Majors of every other dependency wait for review.
   - The checks do not run a release, scheduled, or push-only workflow, so an action used only there merges without
     having run. A repository where such a workflow is costly to break can add a package rule with
     `"automerge": false` for those files (`matchFileNames`).
@@ -202,6 +203,11 @@ a team-specific preset:
     reaches LTS. A tag that names an Alpine release, such as `24-alpine3.21`, gets every new line: an odd-numbered one
     waits for review, an even-numbered one merges in April while it is still Current, and a move to Alpine 4 waits
     for review.
+  - In a Dockerfile, `ghcr.io/jqlang/jq` is a build tool: a build stage copies `/jq` from the image and runs it. The
+    Dockerfile builds in the PR checks, so a green PR has built with the new jq. A jq release can change
+    what a filter prints without failing it, as 1.7 did when it started printing large number literals at full
+    precision, so the build catches such a change only where the checks use the files jq writes. A repository whose
+    checks do not can add the same `"automerge": false` rule for that Dockerfile.
 - `github-actions` groups third-party and Netcracker actions separately, with major updates in separate groups. The
   `renovate/renovate` and `ghcr.io/renovatebot/renovate` images stay out of the third-party groups, so they keep the
   monthly `renovate` group of the inherited config.

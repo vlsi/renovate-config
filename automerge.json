@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": ["Automerge non-major dependency updates, major updates of the actions GitHub publishes, and major updates of the official node image in a Dockerfile to an even-numbered release, after required checks pass"],
+  "description": ["Automerge non-major dependency updates, major updates of the actions GitHub publishes, major updates of the official node image in a Dockerfile to an even-numbered release, and major updates of the ghcr.io/jqlang/jq image in a Dockerfile, after required checks pass"],
   "automergeType": "pr",
   "platformAutomerge": true,
   "assignAutomerge": false,
@@ -30,6 +30,14 @@
       ],
       "matchUpdateTypes": ["major"],
       "matchNewValue": "/^\\d*[02468](?:[.-]|$)/",
+      "automerge": true
+    },
+    {
+      "description": ["Automerge major updates of the ghcr.io/jqlang/jq image in a Dockerfile; jq is a build tool there, and the Dockerfile builds in the PR checks, so a green PR has built with the new jq"],
+      "matchManagers": ["dockerfile"],
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/jqlang/jq"],
+      "matchUpdateTypes": ["major"],
       "automerge": true
     },
     {
